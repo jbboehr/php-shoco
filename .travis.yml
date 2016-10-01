@@ -34,11 +34,13 @@ before_install:
   - travis_retry sudo apt-get install -y automake gcc-5 lcov pkg-config
   - travis_retry gem install coveralls-lcov
   - travis_retry git clone -b autoconf https://github.com/jbboehr/shoco.git
-  - cd shoco && ./bootstrap && ./configure --prefix=$PREFIX && make install
+  - cd shoco
+  - ./bootstrap && ./configure --prefix=$PREFIX && make install
+  - cd ..
 
 install:
   - phpize
-  - ./configure --enable-handlebars CFLAGS="--coverage -fprofile-arcs -ftest-coverage $CFLAGS" LDFLAGS="--coverage"
+  - ./configure --enable-shoco CFLAGS="--coverage -fprofile-arcs -ftest-coverage $CFLAGS" LDFLAGS="--coverage"
   - make
 
 before_script:

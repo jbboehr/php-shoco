@@ -1,7 +1,6 @@
 language: php
 
 php:
-  - 5.3
   - 5.4
   - 5.5
   - 5.6
@@ -13,13 +12,8 @@ sudo: required
 dist: trusty
 
 env:
-  global:
-    - PREFIX="$HOME/build"
-    - PATH="$PREFIX/bin:$PATH"
-    - CFLAGS="-L$PREFIX/lib"
-    - CPPFLAGS="-I$PREFIX/include"
-    - PKG_CONFIG_PATH="$PREFIX/lib/pkgconfig"
-    - CC="gcc-5"
+  - TYPE=coverage
+  - TYPE=valgrind
 
 cache: false
 
@@ -29,35 +23,14 @@ cache: false
 #    - travis
 
 before_install:
-  - travis_retry sudo apt-add-repository -y ppa:ubuntu-toolchain-r/test
   - travis_retry sudo apt-get update -y
-  - travis_retry sudo apt-get install -y automake gcc-5 lcov pkg-config
+  - travis_retry sudo apt-get install -y automake lcov pkg-config valgrind
   - travis_retry gem install coveralls-lcov
   - travis_retry git clone -b autoconf https://github.com/jbboehr/shoco.git
-  - cd shoco
-  - ./bootstrap && ./configure --prefix=$PREFIX && make install
-  - cd ..
+  - ./.travis.sh before_install
 
-install:
-  - phpize
-  - ./configure --enable-shoco CFLAGS="--coverage -fprofile-arcs -ftest-coverage $CFLAGS" LDFLAGS="--coverage"
-  - make
-
-before_script:
-  - lcov --directory . --zerocounters
-  - lcov --directory . --capture --compat-libtool --initial --output-file coverage.info
-
-script:
-  - export NO_INTERACTION=1
-  - export REPORT_EXIT_STATUS=1
-  - export TEST_PHP_EXECUTABLE=`which php`
-  - php run-tests.php -d extension=shoco.so -d extension_dir=modules -n ./tests/
-
-after_success:
-  - lcov --no-checksum --directory . --capture --compat-libtool --output-file coverage.info
-  - lcov --remove coverage.info "/usr*" --remove coverage.info "*/.phpenv/*" --remove coverage.info "/home/travis/build/include/*" --compat-libtool --output-file coverage.info
-  - coveralls-lcov coverage.info
-
-after_failure:
-  - for i in `find tests -name "*.out" 2>/dev/null`; do echo "-- START ${i}"; cat $i; echo "-- END"; done
-  - for i in `find tests -name "*.mem" 2>/dev/null`; do echo "-- START ${i}"; cat $i; echo "-- END"; done
+install: ./.travis.sh install $TYPE
+before_script: ./.travis.sh before_script $TYPE
+script: ./.travis.sh script $TYPE
+after_success: ./.travis.sh after_success $TYPE
+after_failure: ./.travis.sh after_failure

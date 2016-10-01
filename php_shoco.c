@@ -6,6 +6,9 @@
 #include "main/php.h"
 #include "main/php_ini.h"
 #include "ext/standard/info.h"
+#include "ext/spl/spl_exceptions.h"
+#include "zend_API.h"
+#include "zend_exceptions.h"
 
 #include "shoco.h"
 
@@ -26,7 +29,7 @@ ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO(shoco_args, IS_STRING, NULL, 0)
 ZEND_END_ARG_INFO()
 #else
 ZEND_BEGIN_ARG_INFO_EX(shoco_args, 0, 0, 1)
-    ZEND_ARG_TYPE_INFO(0, data, IS_STRING, 0)
+    ZEND_ARG_INFO(0, data)
 ZEND_END_ARG_INFO()
 #endif
 /* }}} */
@@ -42,14 +45,20 @@ PHP_FUNCTION(shoco_compress)
         Z_PARAM_STRING(in, in_length)
     ZEND_PARSE_PARAMETERS_END();
 #else
-    if( zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &in, in_length) == FAILURE ) {
+    if( zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &in, &in_length) == FAILURE ) {
         return;
     }
 #endif
 
-    char *out = alloca(in_length * 2);
-    size_t out_length = shoco_compress(in, in_length, out, in_length * 2);
-    PHP5TO7_RETVAL_STRINGL(out, out_length);
+    strsize_t buf_size = in_length * 3;
+    char *out = alloca(buf_size);
+    size_t out_length = shoco_compress(in, in_length, out, buf_size);
+
+    if( out_length > buf_size ) {
+        zend_throw_exception(spl_ce_RuntimeException, "Shoco compression failed", 0 TSRMLS_CC);
+    } else {
+        PHP5TO7_RETVAL_STRINGL(out, out_length);
+    }
 }
 /* }}} */
 
@@ -64,14 +73,20 @@ PHP_FUNCTION(shoco_decompress)
         Z_PARAM_STRING(in, in_length)
     ZEND_PARSE_PARAMETERS_END();
 #else
-    if( zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &in, in_length) == FAILURE ) {
+    if( zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &in, &in_length) == FAILURE ) {
         return;
     }
 #endif
 
-    char *out = alloca(in_length * 2);
-    size_t out_length = shoco_decompress(in, in_length, out, in_length * 2);
-    PHP5TO7_RETVAL_STRINGL(out, out_length);
+    strsize_t buf_size = in_length * 3;
+    char *out = alloca(buf_size);
+    size_t out_length = shoco_decompress(in, in_length, out, buf_size);
+
+    if( out_length > buf_size ) {
+        zend_throw_exception(spl_ce_RuntimeException, "Shoco compression failed", 0 TSRMLS_CC);
+    } else {
+        PHP5TO7_RETVAL_STRINGL(out, out_length);
+    }
 }
 /* }}} */
 

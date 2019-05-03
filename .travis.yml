@@ -1,30 +1,28 @@
 language: php
 
 php:
-  - 5.4
-  - 5.5
-  - 5.6
-  - 7.0
   - 7.1
+  - 7.2
+  - 7.3
 
-sudo: required
-
-dist: trusty
+sudo: false
 
 env:
   - TYPE=coverage
   - TYPE=valgrind
 
-cache: false
+addons:
+  apt:
+    packages:
+    - lcov
+    - valgrind
 
-#branches:
-#  only:
-#    - master
-#    - travis
+branches:
+  only:
+    - master
+    - travis
 
 before_install:
-  - travis_retry sudo apt-get update -y
-  - travis_retry sudo apt-get install -y automake lcov pkg-config valgrind
   - travis_retry gem install coveralls-lcov
   - travis_retry git clone -b autoconf https://github.com/jbboehr/shoco.git
   - ./.travis.sh before_install

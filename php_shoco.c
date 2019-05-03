@@ -23,8 +23,12 @@ typedef int strsize_t;
 #endif
 
 /* {{{ Argument Info */
-#ifdef ZEND_ENGINE_3
+#if (PHP_VERSION_ID >= 70000 && PHP_VERSION_ID <= 70200)
 ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO(shoco_args, IS_STRING, NULL, 0)
+    ZEND_ARG_TYPE_INFO(0, data, IS_STRING, 0)
+ZEND_END_ARG_INFO()
+#elif defined(ZEND_ENGINE_3)
+ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO(shoco_args, IS_STRING, 0)
     ZEND_ARG_TYPE_INFO(0, data, IS_STRING, 0)
 ZEND_END_ARG_INFO()
 #else

@@ -10,5 +10,4 @@ phpinfo();
 shoco
 
 Version => %a
-Library version => %a
 %a

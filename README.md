@@ -6,7 +6,6 @@
 [![License](https://img.shields.io/badge/license-BSD-brightgreen.svg)](LICENSE.md)
 
 PHP bindings for [shoco](https://github.com/Ed-von-Schleck/shoco).
-shoco needs to be built using autoconf from [this branch](https://github.com/jbboehr/shoco/tree/autoconf).
 
 
 ## Installation

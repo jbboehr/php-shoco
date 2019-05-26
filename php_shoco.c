@@ -14,26 +14,14 @@
 
 #include "php_shoco.h"
 
-#ifdef ZEND_ENGINE_3
-typedef size_t strsize_t;
-#define PHP5TO7_RETVAL_STRINGL RETVAL_STRINGL
-#else
-typedef int strsize_t;
-#define PHP5TO7_RETVAL_STRINGL(a, b) RETVAL_STRINGL(a, b, 1)
-#endif
-
 /* {{{ Argument Info */
 #if (PHP_VERSION_ID >= 70000 && PHP_VERSION_ID <= 70200)
 ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO(shoco_args, IS_STRING, NULL, 0)
     ZEND_ARG_TYPE_INFO(0, data, IS_STRING, 0)
 ZEND_END_ARG_INFO()
-#elif defined(ZEND_ENGINE_3)
+#else
 ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO(shoco_args, IS_STRING, 0)
     ZEND_ARG_TYPE_INFO(0, data, IS_STRING, 0)
-ZEND_END_ARG_INFO()
-#else
-ZEND_BEGIN_ARG_INFO_EX(shoco_args, 0, 0, 1)
-    ZEND_ARG_INFO(0, data)
 ZEND_END_ARG_INFO()
 #endif
 /* }}} */
@@ -41,27 +29,20 @@ ZEND_END_ARG_INFO()
 /* {{{ proto string shoco_compress($input) */
 PHP_FUNCTION(shoco_compress)
 {
-    const char *in = NULL;
-    strsize_t in_length = 0;
+    zend_string *in = NULL;
 
-#ifdef ZEND_ENGINE_3
     ZEND_PARSE_PARAMETERS_START(1, 1)
-        Z_PARAM_STRING(in, in_length)
+        Z_PARAM_STR(in)
     ZEND_PARSE_PARAMETERS_END();
-#else
-    if( zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &in, &in_length) == FAILURE ) {
-        return;
-    }
-#endif
 
-    strsize_t buf_size = in_length * 3;
+    size_t buf_size = ZSTR_LEN(in) * 3;
     char *out = alloca(buf_size);
-    size_t out_length = shoco_compress(in, in_length, out, buf_size);
+    size_t out_length = shoco_compress(ZSTR_VAL(in), ZSTR_LEN(in), out, buf_size);
 
     if( out_length > buf_size ) {
-        zend_throw_exception(spl_ce_RuntimeException, "Shoco compression failed", 0 TSRMLS_CC);
+        zend_throw_exception(spl_ce_RuntimeException, "Shoco compression failed", 0);
     } else {
-        PHP5TO7_RETVAL_STRINGL(out, out_length);
+        RETVAL_STRINGL(out, out_length);
     }
 }
 /* }}} */
@@ -69,27 +50,20 @@ PHP_FUNCTION(shoco_compress)
 /* {{{ proto string shoco_decompress($input) */
 PHP_FUNCTION(shoco_decompress)
 {
-    const char *in = NULL;
-    strsize_t in_length = 0;
+    zend_string *in = NULL;
 
-#ifdef ZEND_ENGINE_3
     ZEND_PARSE_PARAMETERS_START(1, 1)
-        Z_PARAM_STRING(in, in_length)
+        Z_PARAM_STR(in)
     ZEND_PARSE_PARAMETERS_END();
-#else
-    if( zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &in, &in_length) == FAILURE ) {
-        return;
-    }
-#endif
 
-    strsize_t buf_size = in_length * 3;
+    size_t buf_size = ZSTR_LEN(in) * 3;
     char *out = alloca(buf_size);
-    size_t out_length = shoco_decompress(in, in_length, out, buf_size);
+    size_t out_length = shoco_decompress(ZSTR_VAL(in), ZSTR_LEN(in), out, buf_size);
 
     if( out_length > buf_size ) {
-        zend_throw_exception(spl_ce_RuntimeException, "Shoco compression failed", 0 TSRMLS_CC);
+        zend_throw_exception(spl_ce_RuntimeException, "Shoco compression failed", 0);
     } else {
-        PHP5TO7_RETVAL_STRINGL(out, out_length);
+        RETVAL_STRINGL(out, out_length);
     }
 }
 /* }}} */

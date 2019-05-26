@@ -1,7 +1,7 @@
 --TEST--
-shoco (invalid arg - PHP 7)
+shoco (invalid arg)
 --SKIPIF--
-<?php if( !extension_loaded('shoco') || PHP_MAJOR_VERSION < 7 ) die('skip '); ?>
+<?php if(!extension_loaded('shoco')) die('skip '); ?>
 --FILE--
 <?php
 function shocotest($val) {

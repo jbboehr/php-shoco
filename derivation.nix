@@ -1,4 +1,8 @@
 { php, stdenv, autoreconfHook, fetchurl, lib,
+  buildPecl ? import <nixpkgs/pkgs/build-support/build-pecl.nix> {
+    # re2c is required for nixpkgs master, must not be specified for <= 19.03
+    inherit php stdenv autoreconfHook fetchurl;
+  },
   valgrind ? null,
   phpShocoVersion ? null,
   phpShocoSrc ? null,
@@ -8,9 +12,6 @@
 
 let
   orDefault = x: y: (if (!isNull x) then x else y);
-  buildPecl = import <nixpkgs/pkgs/build-support/build-pecl.nix> {
-    inherit php stdenv autoreconfHook fetchurl;
-  };
 in
 
 buildPecl rec {
@@ -27,7 +28,7 @@ buildPecl rec {
   doCheck = true;
   checkTarget = "test";
   checkInputs = lib.optional phpShocoValgrind [ valgrind ];
-  checkFlags = ["REPORT_EXIT_STATUS=1" "NO_INTERACTION=1" "TEST_PHP_DETAILED=1"]
+  checkFlags = ["REPORT_EXIT_STATUS=1" "NO_INTERACTION=1"]
     ++ (lib.optional phpShocoValgrind ["TEST_PHP_ARGS=-m"]);
 }
 

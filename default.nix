@@ -1,6 +1,9 @@
 {
   pkgs ? import <nixpkgs> {},
   php ? pkgs.php,
+  buildPecl ? pkgs.callPackage <nixpkgs/pkgs/build-support/build-pecl.nix> {
+    inherit php;
+  },
 
   phpShocoVersion ? null,
   phpShocoSrc ? ./.,
@@ -9,6 +12,6 @@
 }:
 
 pkgs.callPackage ./derivation.nix {
-  inherit php phpShocoVersion phpShocoSrc phpShocoSha256 phpShocoValgrind;
+  inherit php buildPecl phpShocoVersion phpShocoSrc phpShocoSha256 phpShocoValgrind;
 }
 

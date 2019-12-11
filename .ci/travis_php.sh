@@ -2,10 +2,6 @@
 
 export COVERAGE=${COVERAGE:-true}
 
-export PHP_MAJOR=$(php -r 'echo phpversion();' | cut -d '.' -f 1)
-export PHP_MINOR=$(php -r 'echo phpversion();' | cut -d '.' -f 2)
-export PHP_MAJOR_MINOR="${PHP_MAJOR}.${PHP_MINOR}"
-
 export PHP_WITH_EXT="`which php` -d extension=`pwd`/modules/shoco.so"
 
 export NO_INTERACTION=1

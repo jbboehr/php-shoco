@@ -9,8 +9,8 @@ in
 builtins.mapAttrs (k: _v:
   let
     path = builtins.fetchTarball {
-       url = https://github.com/NixOS/nixpkgs/archive/release-19.09.tar.gz;
-       name = "nixpkgs-19.09";
+       url = https://github.com/NixOS/nixpkgs/archive/release-20.03.tar.gz;
+       name = "nixpkgs-20.03";
     };
     pkgs = import (path) { system = k; };
 
@@ -19,18 +19,6 @@ builtins.mapAttrs (k: _v:
         ./.;
   in
   pkgs.recurseIntoAttrs {
-    php71 = let
-        path = builtins.fetchTarball {
-           url = https://github.com/NixOS/nixpkgs/archive/release-19.03.tar.gz;
-           name = "nixpkgs-19.03";
-        };
-        pkgs = import (path) { system = k; };
-        php = pkgs.php71;
-    in generateTestsForPlatform {
-        inherit pkgs php phpShocoSrc;
-        buildPecl = pkgs.callPackage "${path}/pkgs/build-support/build-pecl.nix" { inherit php; };
-    };
-
     php72 = let
         php = pkgs.php72;
     in generateTestsForPlatform {
@@ -46,24 +34,7 @@ builtins.mapAttrs (k: _v:
     };
 
     php74 = let
-        path = builtins.fetchTarball {
-           url = https://github.com/NixOS/nixpkgs/archive/master.tar.gz;
-           name = "nixpkgs-unstable";
-        };
-        pkgs = import (path) { system = k; };
         php = pkgs.php74;
-    in generateTestsForPlatform {
-        inherit pkgs php phpShocoSrc;
-        buildPecl = pkgs.callPackage "${path}/pkgs/build-support/build-pecl.nix" { inherit php; };
-    };
-
-    php = let
-        path = builtins.fetchTarball {
-           url = https://github.com/NixOS/nixpkgs/archive/master.tar.gz;
-           name = "nixpkgs-unstable";
-        };
-        pkgs = import (path) { system = k; };
-        php = pkgs.php;
     in generateTestsForPlatform {
         inherit pkgs php phpShocoSrc;
         buildPecl = pkgs.callPackage "${path}/pkgs/build-support/build-pecl.nix" { inherit php; };

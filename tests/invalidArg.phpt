@@ -4,6 +4,7 @@ shoco (invalid arg)
 <?php if(!extension_loaded('shoco')) die('skip '); ?>
 --FILE--
 <?php
+declare(strict_types=1);
 function shocotest($val) {
     try {
         shoco_compress($val);

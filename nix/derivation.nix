@@ -1,4 +1,5 @@
-{ php, stdenv, autoreconfHook, fetchurl, lib,
+{
+  php, stdenv, autoreconfHook, fetchurl, lib,
   buildPecl ? import <nixpkgs/pkgs/build-support/build-pecl.nix> {
     # re2c is required for nixpkgs master, must not be specified for <= 19.03
     inherit php stdenv autoreconfHook fetchurl;

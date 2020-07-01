@@ -1,3 +1,6 @@
 *.h             linguist-language=C
+*.nix           linguist-documentation=true
+/.travis.*      linguist-documentation=true
 /.ci/*          linguist-documentation=true
+/nix/*          linguist-documentation=true
 /shoco/*        linguist-vendored=true

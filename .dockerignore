@@ -53,8 +53,7 @@
 **/tmp-php.ini
 
 # ci and docker
-.github
-.travis.*
+**/.github/*
 **/*.nix
 **/*Dockerfile
 **/.dockerignore

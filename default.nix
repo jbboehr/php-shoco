@@ -17,7 +17,7 @@
   phpShocoSha256 ? null,
   phpShocoValgrind ? false,
   phpShocoSrc ? pkgs.lib.cleanSourceWith {
-    filter = (path: type: (builtins.all (x: x != baseNameOf path) [".idea" ".git" "ci.nix" ".travis.sh" ".travis.yml" ".ci" "nix" "default.nix"]));
+    filter = (path: type: (builtins.all (x: x != baseNameOf path) [".idea" ".git" "ci.nix" "nix" "default.nix" ".github"]));
     src = gitignoreSource ./.;
   }
 }:

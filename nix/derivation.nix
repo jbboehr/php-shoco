@@ -1,35 +1,86 @@
 {
-  php, stdenv, autoreconfHook, fetchurl, lib,
-  buildPecl ? import <nixpkgs/pkgs/build-support/build-pecl.nix> {
-    # re2c is required for nixpkgs master, must not be specified for <= 19.03
-    inherit php stdenv autoreconfHook fetchurl;
-  },
-  valgrind ? null,
-  phpShocoVersion ? null,
-  phpShocoSrc ? null,
-  phpShocoSha256 ? null,
-  phpShocoValgrind ? false
+  lib,
+  php,
+  stdenv,
+  libcap,
+  libpfm,
+  pkg-config,
+  valgrind,
+  autoreconfHook,
+  buildPecl,
+  src,
+  lcov,
+  checkSupport ? false,
+  valgrindSupport ? true,
+  coverageSupport ? false,
 }:
-
-let
-  orDefault = x: y: (if (!isNull x) then x else y);
-in
-
-buildPecl rec {
+(buildPecl rec {
   pname = "shoco";
   name = "shoco-${version}";
-  version = orDefault phpShocoVersion "v0.1.0";
-  src = orDefault phpShocoSrc (fetchurl {
-    url = "https://github.com/jbboehr/php-shoco/archive/${version}.tar.gz";
-    sha256 = orDefault phpShocoSha256 "0zhawzpary1j91038khxnzwnijkrdpsxi8wspp72q3x328xy6g04";
-  });
+  version = "v0.1.0";
 
-  makeFlags = ["phpincludedir=$(out)/include/php/ext/shoco"];
+  inherit src;
 
-  doCheck = true;
-  checkTarget = "test";
-  checkInputs = lib.optional phpShocoValgrind [ valgrind ];
-  checkFlags = ["REPORT_EXIT_STATUS=1" "NO_INTERACTION=1"]
-    ++ (lib.optional phpShocoValgrind ["TEST_PHP_ARGS=-m"]);
-}
+  buildInputs = [libcap libpfm];
+  nativeBuildInputs =
+    [php.unwrapped.dev pkg-config]
+    ++ lib.optional valgrindSupport valgrind
+    ++ lib.optional coverageSupport lcov;
 
+  passthru = {
+    inherit php libpfm stdenv;
+  };
+
+  configureFlags =
+    []
+    ++ lib.optional coverageSupport ["--enable-shoco-coverage"];
+
+  makeFlags = ["phpincludedir=$(dev)/include"];
+  outputs =
+    lib.optional (checkSupport && coverageSupport) "coverage"
+    ++ ["out" "dev"];
+
+  doCheck = checkSupport;
+  theRealFuckingCheckPhase =
+    ''
+      runHook preCheck
+      REPORT_EXIT_STATUS=1 NO_INTERACTION=1 make test TEST_PHP_ARGS="-n" || (find tests -name '*.log' | xargs cat ; exit 1)
+    ''
+    + (lib.optionalString valgrindSupport ''
+      USE_ZEND_ALLOC=0 REPORT_EXIT_STATUS=1 NO_INTERACTION=1 make test TEST_PHP_ARGS="-n -m" || (find tests -name '*.mem' | xargs cat ; exit 1)
+    '')
+    + ''
+      runHook postCheck
+    '';
+
+  preBuild = lib.optionalString coverageSupport ''
+    lcov --directory . --zerocounters
+    lcov --directory . --capture --compat-libtool --initial --output-file coverage.info
+  '';
+
+  postCheck = lib.optionalString coverageSupport ''
+    lcov --no-checksum --directory . --capture --no-markers --compat-libtool --output-file coverage.info
+    set -o noglob
+    lcov --remove coverage.info '${builtins.storeDir}/*' \
+        --compat-libtool \
+        --output-file coverage.info
+    set +o noglob
+    mkdir -p $coverage
+    cp coverage.info $coverage/coverage.info
+    genhtml coverage.info -o $coverage/html/
+  '';
+
+  meta = with lib; {
+    homepage = "https://github.com/jbboehr/php-shoco";
+    license = licenses.agpl3Plus;
+    platforms = platforms.linux;
+    outputsToInstall = outputs;
+  };
+
+  #TEST_PHP_DETAILED = 1;
+})
+.overrideAttrs (o:
+    o
+    // {
+      checkPhase = o.theRealFuckingCheckPhase;
+    })

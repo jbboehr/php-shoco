@@ -1,32 +1,30 @@
 #!/usr/bin/env bash
 
-set -e -o pipefail
-source .github/scripts/fold.sh
+set -ex -o pipefail
 
 # config
-export DOCKER_NAME=${DOCKER_NAME:-"alpine"}
-export PHP_VERSION=${PHP_VERSION:-"7.4"}
-export TEST_PHP_EXECUTABLE=${TEST_PHP_EXECUTABLE:-"/usr/local/bin/php"}
-export RUN_TESTS_PHP=${RUN_TESTS_PHP:-"/usr/local/lib/php/build/run-tests.php"}
+export PHP_VERSION="${PHP_VERSION:-"8.1"}"
+export TEST_PHP_EXECUTABLE="${TEST_PHP_EXECUTABLE:-"/usr/local/bin/php"}"
+export RUN_TESTS_PHP="${RUN_TESTS_PHP:-"/usr/local/lib/php/build/run-tests.php"}"
+export IMAGE_TAG="${IMAGE_TAG:-"php-shoco-${DOCKER_NAME}"}"
 
-function docker_build() (
-    docker build \
-        -f .github/php-${DOCKER_NAME}.Dockerfile \
-        -t php-shoco \
-        --build-arg PHP_VERSION=${PHP_VERSION} \
-        .
-)
+docker build \
+    -f ".github/php-${DOCKER_NAME}.Dockerfile" \
+    -t "${IMAGE_TAG}" \
+    --build-arg "PHP_VERSION=${PHP_VERSION}" \
+    .
 
-function docker_run() (
-    set -x
-    docker run \
-        --env NO_INTERACTION=1 \
-        --env REPORT_EXIT_STATUS=1 \
-        --env TEST_PHP_EXECUTABLE=${TEST_PHP_EXECUTABLE} \
-        -v "$PWD/tests:/mnt" \
-        php-shoco \
-        php ${RUN_TESTS_PHP} /mnt
-)
+trap 'catch' ERR
 
-cifold "docker build" docker_build
-cifold "docker run" docker_run
+catch() {
+  find tests -print0 -name '*.log'  | xargs -0 -n1 cat
+}
+
+docker run \
+    --env NO_INTERACTION=1 \
+    --env REPORT_EXIT_STATUS=1 \
+    --env "TEST_PHP_EXECUTABLE=${TEST_PHP_EXECUTABLE}" \
+    --cap-add CAP_PERFMON \
+    -v "${PWD}/tests:/mnt" \
+    "${IMAGE_TAG}" \
+    php "${RUN_TESTS_PHP}" /mnt
